@@ -1,0 +1,641 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="Keywords" content="JSON Editor, JSON parser, JSON formatter, mock web service" />
+	<title>JSON Tinker: A free online JSON Editor</title> 
+		<style>
+		body, html {
+			background: #444;
+			font-family: verdana, arial, sans-serif;
+			font-size: 12px;
+			color: #444;
+			background: #333;
+			padding: 0px;
+			margin: 0px;
+		}
+		.rounded {
+			-moz-border-radius: 5px;
+			border-radius: 5px;
+			padding: 5px;
+		}
+		div#toparea {
+			height: 70px;
+			background: #FFC77D;
+			margin: 10px;
+		}
+		#inputarea {
+			width: 200px;
+			float:left;	
+			background: #DEC2FC;
+			margin: 5px 10px;
+		}
+		#inputarea textarea {
+			font-size: 12px;
+			border: 1px solid #706280;
+			background: #F0E3FF;
+			padding: 3px;
+			width: 198px;
+		}
+		#toolarea {
+			background: #555;
+			width: 50px;
+			height: 200px;
+			float:left;
+			margin: 5px 10px 0px 0px;
+			bottom: 10px;
+		}
+		#editarea {
+			margin: 5px;
+			bottom: 10px;
+			left: 300px;
+			position: absolute;
+			right: 10px;
+			top: 100px;
+			width: auto;
+			background: #fff;
+			padding: 5px 40px 10px 5px;
+			overflow: auto;
+		}
+		#editarea div {
+			margin-right: 20px;
+			font-family: courier;
+		}
+		#toparea h1 {
+			color: #333333;
+			float: right;
+			font-size: 50pt;
+			position: absolute;
+			top: 26px;
+			right: 8px;
+			margin: 0px;
+		}		
+		div {
+			padding: 1px;
+			margin: 2px 2px 2px 2px;
+			border-radius: 5px;
+		}
+		#json_editor {
+			background: #fff;
+		}
+		#json_editor span {
+			margin: 2px;
+			padding:1px;
+		}
+		div[data-type="object"] {
+			border: 1px solid #fcc;
+			padding-bottom: 8px;
+		}
+		div[data-type="array"] {
+			border: 1px solid #ccf;
+			padding-bottom: 8px;
+		}
+		div[data-role="arrayitem"] > div  {
+			margin: 2px;
+		}
+		[data-type="string"] {
+			color: #4AA150;
+		}
+		pre {
+			display: inline;
+			margin: 2px;
+			font-family: courier;
+			white-space: pre-wrap;
+		}
+		[data-type="number"] {
+			color: #D67B13;
+		}
+		[data-type="null"] {
+			color: #919191;
+		}
+		[data-type="boolean"] {
+			color: #FA6B8F;
+		}
+		div[data-role="value"] {
+			margin-left: 20px;
+		}
+		div[data-role="prop"], div[data-role="arrayitem"] {
+			//border: 0px solid #ccf;
+			margin: 1px;
+			padding: 1px;
+			color: #4155A6;
+		}
+		span[data-role="key"] {
+			min-width:100px;
+		}
+		.edit_box {
+			display: inline-block;
+			padding: 0px;
+			margin: 0px;
+		}
+		.collapse_box {
+			font-size: 6pt;
+			color: #999;
+			padding: 0px;
+			margin: 0px;
+			cursor: pointer;
+		}
+		.dimmed {
+			opacity:0.4;filter:alpha(opacity=40);
+			background; #999;
+		}
+		#toolarea a {
+			color: #EDAF42;
+			text-decoration: none;
+			border: 1px solid #333;
+			width: 20px;
+			padding: 2px 10px;
+			margin: 2px 0px;
+			display: inline-block;
+			border-radius: 3px;
+			background: #666;
+		}
+		#toolarea a:hover {
+			background: A37931;
+			color: #444;
+		}
+
+
+      /* all context menus have this class */
+      .context-menu {
+        -webkit-border-radius: 4px;
+        -moz-border-radius: 4px;
+        border-radius: 4px;
+        
+        background-color: #f2f2f2;
+        border: 1px solid #999;
+        
+        list-style-type: none;
+        margin: 0; 
+        padding: 0;
+      }
+      .context-menu a {
+        display: block;
+        padding: 3px;
+        text-decoration: none;
+        color: #333;
+      }
+      .context-menu a:hover {
+        background-color: #666;
+        color: white;
+      }
+	/* Z-index of #mask must lower than #boxes .window */
+	#mask {
+		position:absolute;
+		z-index:9000;
+		background-color:#000;
+		display:none;
+		top: 0px;
+		bottom: 0px;
+		right: 0px;
+		left:0px;
+	}
+	#boxes .window {
+		position:absolute;
+		width:440px;
+		height:200px;
+		display:none;
+		z-index:9999;
+		padding:20px;
+	}
+	#dialog a.close {
+		color: #EDAF42;
+		text-decoration: none;
+		border: 1px solid #333;
+		padding: 2px 10px;
+		margin: 2px 0px;
+		display: inline-block;
+		border-radius: 3px;
+		background: #666;
+		float:right
+	}
+	#dialog a.close:hover {
+		background: A37931;
+		color: #444;
+	}
+	
+	#past_ws {
+		height: 168px;
+		overflow: auto;
+	}
+	/* Customize your modal window here, you can add background image too */
+	#boxes #dialog {
+		width:375px; 
+		height:203px;
+		background: #fff;
+	}
+	div[data-type="object"] > div.inline_add_box {
+		border: 1px solid #fcc;
+	}
+	div[data-type="array"] > div.inline_add_box {
+		border: 1px solid #ccf;
+	}
+	div.inline_add_box {
+		margin: 5px 0px 0px -2px;
+		border-radius: 3px;
+		background: white;
+		min-width: 20px;
+		color: #AAA;
+		text-align: center;
+		padding: 0px;
+		font-family: Verdana !important;
+		font-size: 9px;
+		float: right;
+		position: absolute;
+		border: 1px solid;
+		min-height: 4px;
+		max-height: 16px;
+		overflow: hidden;
+	}
+	div.inline_add_box a {
+		color: #7aa;
+		font-size: 10px;
+		cursor: pointer;
+		text-decoration: none;
+	}
+	div.inline_add_box a:hover {
+		color: #366;
+	}
+	div.add_box_content {
+		display: none;
+		padding: 0px;
+		margin: 2px;
+		padding-left: 5px;
+		text-align: center;
+		cursor: default;
+	}
+	
+
+</style>
+	
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.5.2.min.js"></script>
+	<script type="text/javascript" src="http://json.bubblemix.net/jeditable.js"></script>
+	<script src="http://json.bubblemix.net/jquery.contextMenu.js" type="text/javascript" charset="utf-8"></script> 
+		<script>
+		$(function(){
+			$(document).bind("contextmenu",function(e){
+            		  return false;
+       			}); 
+       			
+       			$('#json_editor').html('');
+			json_editor('json_editor', '{"greeting":"haro"}');
+
+			// add the jquery editing magic
+			apply_editlets();
+
+			$('#jsoninput').click(function(){
+				$(this).focus();
+				$(this).select();
+			});
+		});
+		
+		// stuff for the modal ws window
+		function display_ws_modal() {
+			var id = '#dialog';
+			//transition effect     
+			$('#mask').fadeIn(500);    
+			$('#mask').fadeTo("slow",0.8);  
+			
+			//Get the window height and width
+			var winH = $(window).height();
+			var winW = $(window).width();
+			       
+			//Set the popup window to center
+			$(id).css('top',  winH/2-$(id).height()/2);
+			$(id).css('left', winW/2-$(id).width()/2);
+			
+			//transition effect
+			$(id).fadeIn(1000); 
+		}
+
+		// stuff for the right click menus
+		function setup_menu() {
+			$('div[data-role="arrayitem"]').contextMenu('context-menu1', {
+			    'remove item': {
+				click: remove_item,
+				klass: "menu-item-1" // a custom css class for this menu item (usable for styling)
+			    },
+			}, menu_options);
+			$('div[data-role="prop"]').contextMenu('context-menu2', {
+			    'remove item': {
+				click: remove_item,
+				klass: "menu-item-1" // a custom css class for this menu item (usable for styling)
+			    },
+			}, menu_options);
+		}
+		function remove_item(element) {
+		      console.log("# delete");
+		      element.hide(500, function () {
+			      $(this).remove();
+		      });
+		}
+		function create_item(element) {
+		      console.log("# create");
+		}
+		var menu_options = {
+			disable_native_context_menu: true,
+			showMenu: function(element) {
+				element.addClass('dimmed');
+			},
+			hideMenu: function(element) {
+				element.removeClass('dimmed');
+			},
+		};
+
+
+		// functions used for the web service
+		function save_ws(input) {
+			$json = glean_json(input, 0);
+			$.post("save.php", { json: $json},
+				function(data) {
+					//alert("You can retrieve your json as a web service at this url: http://json.bubblemix.net/ws/" + data);
+					var url = 'http://json.bubblemix.net/ws/' + data;
+					$('#past_ws hr').remove();
+					var new_row = $('<div>').html('<a href="' + url + '" target="_blank">' + url + '</a>').append('<hr />');
+					$('#past_ws').prepend(new_row);
+					display_ws_modal();
+				});
+		}
+		var easy_save_value = function(value, settings) { 
+			$(this).text(value);
+		}
+		var save_value = function(value, settings) { 
+			console.log(this); console.log(value); // console.log(settings);
+
+			if ($(this).data('role') == 'value') {
+				if (value == "null") {
+					$(this).attr("data-type", "null");
+					$(this).data('type','null');
+					$(this).text(value);
+					$(this).unbind('click');
+				} else if (value == "true" || value == "false") {
+					$(this).attr("data-type", "boolean");
+					$(this).data('type','boolean');
+					$(this).text(value);
+					$(this).unbind();
+					$(this).editable(save_value,{ cssclass : 'edit_box', height:'20px', width:'100px', data : "{'true':'true','false':'false'}", type : 'select', onblur : 'submit' });
+				} else {
+					var num = parseFloat(value);
+					console.log(num);
+					if (isNaN(num)) {
+						$(this).attr("data-type", "string");
+						$(this).data('type','string');
+						$(this).text(value);
+						$(this).unbind();
+						$(this).editable(save_value, { cssclass : 'edit_box', height:'20px', width:'50px'});
+					} else {
+						$(this).attr("data-type", "number");
+						$(this).data('type','number');
+						$(this).text(num);
+						$(this).unbind();
+						$(this).editable(save_value, { cssclass : 'edit_box', height:'20px', width:'150px'});
+					}
+				}
+			} else {
+				$(this).text(value);
+			}
+		};
+		// copy the workspace back into the textarea
+		function extract_json(divid, indent){
+			$('#jsoninput').val(glean_json(divid,indent));
+		}
+		// convert the work area to a json string
+		function glean_json(divid, indent)  {
+			var base = $('#' + divid);
+			var rootnode = base.children('div[data-role="value"]:first');
+			var jsObject = parse_node(rootnode);
+			var json = JSON.stringify(jsObject, null, indent);
+			return json;
+		}
+		// convert the work area to a js object
+		function parse_node(node) {
+			var type = node.data('type');
+			if (type == 'object') {
+				var newNode = new Object();
+				var props = node.children('div[data-role="prop"]');
+				props.each(function(index) {
+					newNode[$(this).children('[data-role="key"]').html()] = parse_node($(this).children('[data-role="value"]'));
+				});
+				return newNode;
+			} else if (type == 'array') {
+				var newNode = new Array();
+				var values = node.children('[data-role="arrayitem"]');
+				values.each(function(index) {
+					var value_node = $(this).children('[data-role="value"]');
+					newNode.push(parse_node(value_node));
+				});
+				return newNode;
+			} else if (type == 'string') {
+				return node.html();
+			} else if (type == 'number') {
+				var parsedNum = parseFloat(node.html());
+				if(isNaN(parsedNum)) return 0;
+				return parsedNum;
+			} else if (type == 'boolean') {
+				return (node.html() == "true") ;
+			} else if (type == null || type == 'null' ) {
+				return null;
+			} else {
+				return "(Unknown Type:" + type + " )";
+			}
+		}
+		function remove_editlets() {
+			$("span.collapse_box").remove();
+			$("div.inline_add_box").remove();
+			$(".context-menu").remove();
+
+		}
+		function apply_editlets() {
+			remove_editlets();
+			// add collapse boxes for the arrays and objects
+			var o_collapse_box = $('<span class="collapse_box"><span>[-]</span><span style="display: none">[+] {...}</span></span>');
+			var a_collapse_box = $('<span class="collapse_box"><span>[-]</span><span style="display: none" data-role="counter">[+] []</span></span>');
+			$('div[data-type="object"]').before(o_collapse_box );
+			$('div[data-type="array"]').before(a_collapse_box );
+
+			$('.collapse_box').click(function(){
+				var next = $(this).next();
+				next.toggle();
+				$(this).find('span').toggle();
+				if ( next.data('type') == 'array' ) {
+					$(this).find('span[data-role="counter"]').html('[+] ['+ next.children('[data-role="arrayitem"]').length +']' );
+				}
+				event.stopPropagation();
+			});
+			
+			// add the "new" buttons
+			var add_more_box = $('<div class="inline_add_box"><div class="add_box_content">add: <a data-task="add_value" href="#">text</a> | <a data-task="add_array" href="#">array</a> | <a data-task="add_object" href="#">object</a></div></div>');
+			$('div[data-type="object"]').append(add_more_box);
+			$('div[data-type="array"]').append(add_more_box);
+			
+			$('div.inline_add_box a').click(function(e){
+				var target = $(e.target);
+				var task = target.data('task');
+				var add_box = target.parents(".inline_add_box");
+				var collection = add_box.parent();				
+				var type = collection.data('type');
+
+				// TODO this code is a partial duplicate of code in make_node fix it!
+				if (type == 'object') {
+					var newObj = $('<div data-role="prop"></div>').append( $('<span data-role="key">').append("key")).append(': ');
+				} else {
+					var newObj = $('<div data-role="arrayitem"></div>');
+				}
+				
+				if (task == 'add_object') {
+					var json = '{"id":"1"}';
+					newObj.append(make_node(JSON.parse(json)));
+				} else if (task == 'add_array') {
+					var json = '["item1"]';
+					newObj.append(make_node(JSON.parse(json)));
+				} else {
+					newObj.append($('<pre data-role="value" data-type="string">').html("value"));
+				}
+				newObj.hide();
+				add_box.before(newObj);
+				newObj.show(500);
+				apply_editlets();
+				return false;
+			});
+			
+			$(".inline_add_box").hover(
+				function () {
+					$(this).children().show(100);
+				},
+				function () {
+					$(this).children().hide(200);
+				}
+			);
+
+			// make the fields editable in place
+			$('span[data-role="key"]').editable(easy_save_value,{ cssclass : 'edit_box', height:'20px', width:'100px'});
+			$('[data-type="string"]').editable(save_value, { cssclass : 'edit_box', height:'20px', width:'150px'});
+			$('[data-type="number"]').editable(save_value, { cssclass : 'edit_box', height:'20px', width:'50px'});
+			$('[data-type="null"]').editable(save_value, { cssclass : 'edit_box', height:'20px', width:'150px'});
+			$('[data-type="boolean"]').editable(save_value,{ cssclass : 'edit_box', height:'20px', width:'100px', data : "{'true':'true','false':'false'}", type : 'select', onblur : 'submit' });
+			
+			// make the right click menus
+			setup_menu();
+
+		}
+		// parse the text area into the the workarea, setup the event handlers
+		function load_from_box() {
+			$('#json_editor').html('');
+			json_editor('json_editor', $('#jsoninput').val());
+
+			// add the jquery editing magic
+			apply_editlets();
+		}
+		// convert a string into nodes
+		function json_editor(divid, json_string){
+			try {
+			var json = JSON.parse(json_string);
+			} catch (err) {
+			var json = JSON.parse('{"error": "parse failed"}');
+			}
+			var base = $('#' + divid);
+			base.append(make_node(json));
+		}
+		// recursively make html nodes out of the json
+		function make_node(node_in) {
+			console.log(" ====> " + JSON.stringify(node_in));
+			var type = Object.prototype.toString.apply(node_in);
+			console.log("  - " + type);
+
+			if (type === "[object Object]") {
+				// TODO create the div for an object here
+				var container = $('<div data-role="value" data-type="object"></div>');
+				for(var prop in node_in) {
+					if(node_in.hasOwnProperty(prop)) {
+						var row = $('<div data-role="prop"></div>').append( $('<span data-role="key">').append(prop)).append(': ').append(make_node(node_in[prop]));
+						container.append(row);
+					}
+				}
+				return container;
+			} else if (type === "[object Array]") {
+				var container = $('<div data-role="value" data-type="array"></div>');
+				for (var i = 0, j = node_in.length; i < j; i++) {
+					var row = $('<div data-role="arrayitem"></div>').append(make_node(node_in[i]));
+					container.append(row);
+				}
+				return container;
+			} else if (type === "[object String]") {
+				return $('<pre data-role="value" data-type="string">').html(node_in);
+			} else if (type === "[object Number]") {
+				return $('<pre data-role="value" data-type="number">').html(node_in);
+			} else if (type === "[object global]" || type === "[object Null]") {
+				return $('<pre data-role="value" data-type="null">').html('null');
+			} else if (type === "[object Boolean]") {
+				return $('<pre data-role="value" data-type="boolean">').html(node_in.toString());
+			}
+		}
+	</script>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-19275132-4']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</head>
+<body>
+	<div id="toparea" class="rounded">
+		a handy online json editor v0.1b
+		<br />.. now with mock web service publishing (click [ws] in the tool bar)
+		<br />.. now deleting nodes works (right click to delete)
+		<br />.. now adding nodes works (hover the lil oval below a container)
+		<h1>JSON Tinker</h1>
+	</div>
+	<div id="inputarea" class="rounded">
+	input:
+	<textarea id="jsoninput" rows="35" cols="24">{"name":"jane","employed":false,"husband":null,"items":["haro",23,{"brand":"Duca"},true],"pets":[{"name":"chopper","color":"blue"},{"name":"yoshi","color":"green"},{"name":"mame","color":"&#38738;&#12356;"}],"height":170.4,"car":{"color":"red","model":"mini","clean":false}}</textarea>
+	</div>
+	<div id="toolarea" class="rounded">tools:
+		<a href="#" onclick="javascript:load_from_box(); " title="import into workspace">&gt;&gt;</a><br/>
+		<a href="#" onclick="javascript:extract_json('json_editor');"  title="export json">&lt;0</a><br/>
+		<a href="#" onclick="javascript:extract_json('json_editor', 2); "  title="export json with 2 space indent">&lt;2</a><br/>
+		<a href="#" onclick="javascript:extract_json('json_editor', '\t'); "  title="export json with tab indent">&lt;\t</a><br/>
+		<a href="#" onclick="javascript:save_ws('json_editor'); " title="save as a mock web service">ws</a>
+
+	</div>
+	<div id="editarea" class="rounded">
+		workspace:
+		<div id="json_editor" data-role="myjson"></div>
+	</div>
+	<!-- END visible area//-->
+	<div style="display:none"><div data-type="object"></div><div data-type="array"></div></div>
+	<div id="boxes">
+		<div id="dialog" class="window">
+			<b>Your JSON can be fetched at this url:</b>
+			<div id="past_ws">
+			</div>
+			<a href="#" class="close" onclick="javascript: $('#mask, .window').fadeOut(500); ">Close</a>
+		</div>
+		<div id="mask"></div>
+	</div>
+
+<!-- code for GetSatisfaction //-->
+<script type="text/javascript" charset="utf-8">
+  var is_ssl = ("https:" == document.location.protocol);
+  var asset_host = is_ssl ? "https://s3.amazonaws.com/getsatisfaction.com/" : "http://s3.amazonaws.com/getsatisfaction.com/";
+  document.write(unescape("%3Cscript src='" + asset_host + "javascripts/feedback-v2.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+<script type="text/javascript" charset="utf-8">
+  var feedback_widget_options = {};
+  feedback_widget_options.display = "overlay";  
+  feedback_widget_options.company = "bubblemix";
+  feedback_widget_options.placement = "right";
+  feedback_widget_options.color = "#222";
+  feedback_widget_options.style = "idea";
+  var feedback_widget = new GSFN.feedback_widget(feedback_widget_options);
+</script>
+
+</body>
+</html>
+								
